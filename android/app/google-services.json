@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "749492531358",
+    "project_id": "tailorhub-3acc1",
+    "storage_bucket": "tailorhub-3acc1.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:749492531358:android:ed9a27a292a5ee54424b8f",
+        "android_client_info": {
+          "package_name": "com.example.tailor_shop"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAbYhdtMIP6nwPLaB7RGRtrczd-zoQEjOk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

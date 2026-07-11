@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../../../main.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_text_field.dart';
 import '../../../l10n/app_localizations.dart';
-import '../../auth/screens/login_signup_screen.dart';
+import '../../auth/ui/login_signup_screen.dart';
 import 'menu_pricing_screen.dart';
 
 class TailorProfileSettings extends StatefulWidget {
@@ -43,14 +44,13 @@ class _TailorProfileSettingsState extends State<TailorProfileSettings> {
           title: Text(l10n.logOut),
           content: Text(l10n.logOutConfirmation),
           actions: [
-            TextButton(
+            AppButton(
               onPressed: () => Navigator.pop(context),
-              child: Text(
-                l10n.cancel,
-                style: const TextStyle(color: AppColors.textMedium),
-              ),
+              text: l10n.cancel,
+              type: AppButtonType.text,
+              isFullWidth: false,
             ),
-            ElevatedButton(
+            AppButton(
               onPressed: () {
                 Navigator.pop(context);
                 Navigator.pushAndRemoveUntil(
@@ -61,11 +61,8 @@ class _TailorProfileSettingsState extends State<TailorProfileSettings> {
                   (route) => false,
                 );
               },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.statusClosed,
-                foregroundColor: AppColors.textWhite,
-              ),
-              child: Text(l10n.logOut),
+              text: l10n.logOut,
+              isFullWidth: false,
             ),
           ],
         );

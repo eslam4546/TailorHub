@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/app_text_field.dart';
 import 'package:tailor_shop/l10n/app_localizations.dart';
 
 class VipBookingScreen extends StatefulWidget {
@@ -293,43 +294,11 @@ class _VipBookingScreenState extends State<VipBookingScreen> {
       titleIcon: Icons.location_on_rounded,
       child: Column(
         children: [
-          TextField(
+          AppTextField(
             controller: _addressController,
-            enabled: !_useCurrentLocation,
+            hintText: AppLocalizations.of(context)!.enterAddressHint,
+            prefixIcon: Icons.home_outlined,
             maxLines: 2,
-            decoration: InputDecoration(
-              hintText: AppLocalizations.of(context)!.enterAddressHint,
-              hintStyle: const TextStyle(
-                fontSize: 13,
-                color: AppColors.textLight,
-              ),
-              prefixIcon: const Icon(
-                Icons.home_outlined,
-                color: AppColors.textMedium,
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: AppColors.dividerGrey),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(
-                  color: AppColors.accentGold,
-                  width: 2,
-                ),
-              ),
-              disabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(
-                  color: AppColors.accentGold.withValues(alpha: 0.4),
-                ),
-              ),
-              filled: true,
-              fillColor: _useCurrentLocation
-                  ? AppColors.accentGold.withValues(alpha: 0.06)
-                  : AppColors.backgroundWhite,
-              contentPadding: const EdgeInsets.all(14),
-            ),
           ),
 
           SizedBox(height: 12),
@@ -463,24 +432,10 @@ class _VipBookingScreenState extends State<VipBookingScreen> {
     return _VipSectionCard(
       title: AppLocalizations.of(context)!.measurementNotes,
       titleIcon: Icons.edit_note_rounded,
-      child: TextField(
+      child: AppTextField(
         controller: _notesController,
         maxLines: 3,
-        decoration: InputDecoration(
-          hintText: AppLocalizations.of(context)!.measurementNotesHint,
-          hintStyle: const TextStyle(fontSize: 13, color: AppColors.textLight),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: AppColors.dividerGrey),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: AppColors.accentGold, width: 2),
-          ),
-          filled: true,
-          fillColor: AppColors.backgroundWhite,
-          contentPadding: const EdgeInsets.all(14),
-        ),
+        hintText: AppLocalizations.of(context)!.measurementNotesHint,
       ),
     );
   }

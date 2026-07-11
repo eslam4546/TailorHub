@@ -1,3 +1,5 @@
+import '../../../core/widgets/app_button.dart';
+import '../../../core/widgets/app_text_field.dart';
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
 
@@ -57,57 +59,43 @@ class _TailorServicesManagerScreenState
               ),
               const SizedBox(height: 16),
 
-              TextField(
+              AppTextField(
                 controller: nameController,
-                decoration: const InputDecoration(
-                  labelText: 'Service Name (e.g. Alteration)',
-                  border: OutlineInputBorder(),
-                ),
+                labelText: 'Service Name (e.g. Alteration)',
               ),
               const SizedBox(height: 16),
 
-              TextField(
+              AppTextField(
                 controller: priceController,
                 keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Base Price (EGP)',
-                  border: OutlineInputBorder(),
-                ),
+                labelText: 'Base Price (EGP)',
               ),
               const SizedBox(height: 24),
 
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: () {
-                    final name = nameController.text.trim();
-                    final price =
-                        int.tryParse(priceController.text.trim()) ?? 0;
+              AppButton(
+                onPressed: () {
+                  final name = nameController.text.trim();
+                  final price =
+                      int.tryParse(priceController.text.trim()) ?? 0;
 
-                    if (name.isNotEmpty && price > 0) {
-                      setState(() {
-                        if (isEditing) {
-                          existingService['name'] = name;
-                          existingService['price'] = price;
-                        } else {
-                          _services.add({
-                            'id':
-                                'SRV-${DateTime.now().millisecondsSinceEpoch}',
-                            'name': name,
-                            'price': price,
-                          });
-                        }
-                      });
-                      Navigator.pop(context);
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryNavy,
-                    foregroundColor: AppColors.textWhite,
-                  ),
-                  child: Text(isEditing ? 'Save Changes' : 'Add Service'),
-                ),
+                  if (name.isNotEmpty && price > 0) {
+                    setState(() {
+                      if (isEditing) {
+                        existingService['name'] = name;
+                        existingService['price'] = price;
+                      } else {
+                        _services.add({
+                          'id':
+                              'SRV-${DateTime.now().millisecondsSinceEpoch}',
+                          'name': name,
+                          'price': price,
+                        });
+                      }
+                    });
+                    Navigator.pop(context);
+                  }
+                },
+                text: isEditing ? 'Save Changes' : 'Add Service',
               ),
               const SizedBox(height: 24),
             ],

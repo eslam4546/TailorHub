@@ -1,6 +1,7 @@
+import '../../../core/widgets/app_button.dart';
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../auth/screens/login_signup_screen.dart';
+import '../../auth/ui/login_signup_screen.dart';
 import '../widgets/onboarding_page.dart';
 
 class OnboardingScreen extends StatefulWidget {
@@ -76,16 +77,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 padding: const EdgeInsets.only(top: 12, right: 16),
                 child: isLastPage
                     ? const SizedBox(height: 48)
-                    : TextButton(
+                    : AppButton(
                         onPressed: _goToLoginSignup,
-                        child: Text(
-                          'Skip',
-                          style: TextStyle(
-                            fontSize: 15,
-                            color: AppColors.textMedium,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
+                        text: 'Skip',
+                        type: AppButtonType.text,
+                        isFullWidth: false,
                       ),
               ),
             ),
@@ -137,26 +133,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
                   const SizedBox(height: 32),
 
-                  SizedBox(
-                    width: double.infinity,
-                    height: 52,
-                    child: ElevatedButton(
-                      onPressed: isLastPage ? _goToLoginSignup : _nextPage,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primaryNavy,
-                        foregroundColor: AppColors.textWhite,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                      ),
-                      child: Text(
-                        isLastPage ? 'Get Started' : 'Next',
-                        style: const TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
+                  AppButton(
+                    onPressed: isLastPage ? _goToLoginSignup : _nextPage,
+                    text: isLastPage ? 'Get Started' : 'Next',
                   ),
                 ],
               ),

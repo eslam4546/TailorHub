@@ -1,3 +1,5 @@
+import '../../../core/widgets/app_button.dart';
+import '../../../core/widgets/app_text_field.dart';
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
 
@@ -75,52 +77,38 @@ class _TailorEarningsScreenState extends State<TailorEarningsScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-              TextField(
+              AppTextField(
                 controller: serviceController,
-                decoration: const InputDecoration(
-                  labelText: 'Service Type (e.g. Alteration)',
-                  border: OutlineInputBorder(),
-                ),
+                labelText: 'Service Type (e.g. Alteration)',
               ),
               const SizedBox(height: 16),
-              TextField(
+              AppTextField(
                 controller: amountController,
                 keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Amount (EGP)',
-                  border: OutlineInputBorder(),
-                ),
+                labelText: 'Amount (EGP)',
               ),
               const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: () {
-                    final service = serviceController.text.trim();
-                    final amount =
-                        int.tryParse(amountController.text.trim()) ?? 0;
+              AppButton(
+                onPressed: () {
+                  final service = serviceController.text.trim();
+                  final amount =
+                      int.tryParse(amountController.text.trim()) ?? 0;
 
-                    if (service.isNotEmpty && amount > 0) {
-                      setState(() {
-                        _transactions.insert(0, {
-                          'id':
-                              'MAN-${DateTime.now().millisecondsSinceEpoch.toString().substring(9)}',
-                          'service': service,
-                          'date': 'Today',
-                          'amount': amount,
-                          'isManual': true,
-                        });
+                  if (service.isNotEmpty && amount > 0) {
+                    setState(() {
+                      _transactions.insert(0, {
+                        'id':
+                            'MAN-${DateTime.now().millisecondsSinceEpoch.toString().substring(9)}',
+                        'service': service,
+                        'date': 'Today',
+                        'amount': amount,
+                        'isManual': true,
                       });
-                      Navigator.pop(context);
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryNavy,
-                    foregroundColor: AppColors.textWhite,
-                  ),
-                  child: const Text('Save Entry'),
-                ),
+                    });
+                    Navigator.pop(context);
+                  }
+                },
+                text: 'Save Entry',
               ),
               const SizedBox(height: 24),
             ],

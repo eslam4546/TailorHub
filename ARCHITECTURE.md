@@ -48,19 +48,96 @@ Located in `lib/core/widgets/`. Always use these instead of raw Material widgets
 We use a scalable **Feature-First** architecture. Every domain gets its own self-contained folder.
 
 ```text
-lib/
-├── core/                   # Application-wide shared configurations
-│   ├── theme/              # app_colors.dart
-│   └── widgets/            # app_button.dart, app_text_field.dart
-├── features/               # Domain-specific feature modules
-│   ├── auth/               # Login & Registration screens
-│   ├── customer/           # Customer flows (Booking, Searching, Profile)
-│   ├── splash/             # App initialization screen
-│   └── tailor/             # Vendor flows (Dashboard, Pricing, Queues)
-├── l10n/                   # Application localization dictionaries
-│   ├── app_en.arb          # Master English dictionary
-│   └── app_ar.arb          # Master Egyptian Arabic dictionary
-└── main.dart               # Root entry point and App widget
+tailor_shop/
+├── lib/                                    # Main application code
+│   ├── core/                               # Application-wide shared configurations
+│   │   ├── theme/                          # Theme and color configurations
+│   │   │   ├── app_colors.dart
+│   │   │   └── app_theme.dart
+│   │   └── widgets/                        # Shared custom widgets
+│   │       ├── app_button.dart
+│   │       └── app_text_field.dart
+│   │
+│   ├── features/                           # Domain-specific feature modules
+│   │   ├── auth/                           # Authentication feature
+│   │   │   ├── data/
+│   │   │   │   └── authrepo.dart           # Authentication logic & repository
+│   │   │   └── ui/
+│   │   │       └── login_signup_screen.dart # Login & Registration screen
+│   │   │
+│   │   ├── customer/                       # Customer flows
+│   │   │   ├── screens/
+│   │   │   │   ├── customer_home_screen.dart
+│   │   │   │   ├── customer_main_layout.dart
+│   │   │   │   ├── customer_notifications_screen.dart
+│   │   │   │   ├── customer_profile_screen.dart
+│   │   │   │   ├── order_tracking_screen.dart
+│   │   │   │   ├── regular_booking_screen.dart
+│   │   │   │   ├── tailor_profile_screen.dart
+│   │   │   │   └── vip_booking_screen.dart
+│   │   │   └── widgets/
+│   │   │       ├── category_chip.dart
+│   │   │       ├── order_timeline.dart
+│   │   │       ├── status_tag.dart
+│   │   │       └── tailor_card.dart
+│   │   │
+│   │   ├── onboarding/                     # App onboarding flow
+│   │   │   ├── screens/
+│   │   │   │   └── onboarding_screen.dart
+│   │   │   └── widgets/
+│   │   │       └── onboarding_page.dart
+│   │   │
+│   │   ├── splash/                         # App initialization screen
+│   │   │   └── screens/
+│   │   │       └── splash_screen.dart
+│   │   │
+│   │   └── tailor/                         # Vendor (Tailor) flows
+│   │       ├── screens/
+│   │       │   ├── menu_pricing_screen.dart
+│   │       │   ├── orders_management_screen.dart
+│   │       │   ├── queue_management_screen.dart
+│   │       │   ├── tailor_dashboard_screen.dart
+│   │       │   ├── tailor_earnings_screen.dart
+│   │       │   ├── tailor_main_layout.dart
+│   │       │   ├── tailor_order_details_screen.dart
+│   │       │   ├── tailor_profile_settings.dart
+│   │       │   ├── tailor_services_manager_screen.dart
+│   │       │   └── tailor_settings_screen.dart
+│   │       └── widgets/
+│   │           ├── order_item_card.dart
+│   │           ├── queue_ticket_card.dart
+│   │           └── status_toggle_button.dart
+│   │
+│   ├── l10n/                               # Application localization dictionaries
+│   │   ├── app_ar.arb                      # Master Arabic dictionary
+│   │   ├── app_en.arb                      # Master English dictionary
+│   │   ├── app_localizations.dart          # Generated base localization class
+│   │   ├── app_localizations_ar.dart       # Generated Arabic localizations
+│   │   └── app_localizations_en.dart       # Generated English localizations
+│   │
+│   └── main.dart                           # Root entry point and App widget
+│
+├── linux/                                  # Linux desktop build files
+├── macos/                                  # macOS desktop build files
+├── scratch/                                # Temporary/Scratch files directory
+├── test/                                   # Unit and widget tests directory
+├── web/                                    # Web build files
+├── windows/                                # Windows desktop build files
+│
+├── .flutter-plugins-dependencies           # Generated list of plugin dependencies
+├── .gitignore                              # Git ignored files configuration
+├── .metadata                               # Flutter project metadata
+├── analysis_options.yaml                   # Dart analyzer/linter configurations
+├── ARCHITECTURE.md                         # Project architecture documentation
+├── fix_errors.py                           # Python script for automating error fixes
+├── fix_imports.py                          # Python script for sorting/fixing Dart imports
+├── l10n.yaml                               # Localization code generation config
+├── pubspec.lock                            # Dependency versions lock file
+├── pubspec.yaml                            # Main project configuration and dependencies
+├── README.md                               # Project readme file
+├── tailor_shop.iml                         # IntelliJ/Android Studio project file
+├── update_arb.py                           # Python script to update translation files
+└── update_dart.py                          # Python script to update dart files
 ```
 
 *Rule: Cross-feature imports should be minimized. Features should primarily interact through routing or core services.*

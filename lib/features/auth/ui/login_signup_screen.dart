@@ -1,8 +1,14 @@
+import 'package:firebase_auth/firebase_auth.dart';
+
+import '../../../core/widgets/app_button.dart';
+import '../../../core/widgets/app_text_field.dart';
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../customer/screens/customer_main_layout.dart';
 import '../../tailor/screens/tailor_dashboard_screen.dart';
 import 'package:tailor_shop/l10n/app_localizations.dart';
+
+import '../data/authrepo.dart';
 
 class LoginSignupScreen extends StatefulWidget {
   const LoginSignupScreen({super.key});
@@ -10,9 +16,11 @@ class LoginSignupScreen extends StatefulWidget {
   @override
   State<LoginSignupScreen> createState() => _LoginSignupScreenState();
 }
-
+final AuthRepo _authRepo = AuthRepo(FirebaseAuth.instance);
 class _LoginSignupScreenState extends State<LoginSignupScreen> {
   bool _isLogin = true;
+
+  bool _isLoading = false;
 
   bool _isCustomer = true;
 
@@ -30,17 +38,75 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
     super.dispose();
   }
 
-  void _handleSubmit() {
-    if (_isCustomer) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const CustomerMainLayout()),
+  Future<void> _handleSubmit() async {
+    // التأكد من إن الحقول مش فاضية
+    if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('برجاء إدخال البريد الإلكتروني وكلمة المرور')),
       );
-    } else {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const TailorDashboardScreen()),
+      return;
+    }
+
+    setState(() {
+      _isLoading = true; // تشغيل مؤشر التحميل
+    });
+
+    try {
+      if (_isLogin) {
+        // حالة تسجيل الدخول
+        UserCredential? userCredential = await _authRepo.login(
+          email: _emailController.text.trim(),
+          password: _passwordController.text.trim(),
+        );
+
+        if (userCredential?.user != null) {
+          // جلب دور المستخدم من Firestore
+          String? role = await _authRepo.getUserRole(userCredential!.user!.uid);
+
+          if (!mounted) return;
+          // التوجيه بناءً على الدور اللي متسجل في الداتابيز
+          if (role == 'tailor') {
+            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const TailorDashboardScreen()));
+          } else {
+            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const CustomerMainLayout()));
+          }
+        }
+      } else {
+        // حالة إنشاء حساب جديد
+        if (_nameController.text.isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('برجاء إدخال الاسم')));
+          setState(() => _isLoading = false);
+          return;
+        }
+
+        String role = _isCustomer ? 'customer' : 'tailor';
+
+        await _authRepo.signUp(
+          email: _emailController.text.trim(),
+          password: _passwordController.text.trim(),
+          fullName: _nameController.text.trim(),
+          role: role,
+        );
+
+        if (!mounted) return;
+        // التوجيه المباشر بعد إنشاء الحساب بناءً على اختياره
+        if (_isCustomer) {
+          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const CustomerMainLayout()));
+        } else {
+          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const TailorDashboardScreen()));
+        }
+      }
+    } on FirebaseAuthException catch (e) {
+      // إظهار رسالة الخطأ لو الباسورد غلط أو الإيميل مستخدم
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.message ?? 'حدث خطأ ما')),
       );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false; // إيقاف مؤشر التحميل في كل الحالات
+        });
+      }
     }
   }
 
@@ -83,6 +149,10 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
       ),
     );
   }
+
+  //////////////////////////////////////////////////////////////////////////////////////////////////////////
+  ////////////////////////////////////////////widgets //////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   Widget _buildHeader() {
     return Column(
@@ -159,7 +229,6 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
       ],
     );
   }
-
   Widget _buildRoleSelector() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -210,52 +279,42 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
               ? const SizedBox.shrink()
               : Padding(
                   padding: const EdgeInsets.only(bottom: 16),
-                  child: TextField(
+                  child: AppTextField(
                     controller: _nameController,
-                    textInputAction: TextInputAction.next,
-                    decoration: InputDecoration(
-                      labelText: AppLocalizations.of(context)!.fullName,
-                      hintText: AppLocalizations.of(context)!.enterFullName,
-                      prefixIcon: const Icon(Icons.person_outlined),
-                    ),
+                    labelText: AppLocalizations.of(context)!.fullName,
+                    hintText: AppLocalizations.of(context)!.enterFullName,
+                    prefixIcon: Icons.person_outlined,
                   ),
                 ),
         ),
 
-        TextField(
+        AppTextField(
           controller: _emailController,
           keyboardType: TextInputType.emailAddress,
-          textInputAction: TextInputAction.next,
-          decoration: InputDecoration(
-            labelText: AppLocalizations.of(context)!.email,
-            hintText: AppLocalizations.of(context)!.enterEmail,
-            prefixIcon: const Icon(Icons.email_outlined),
-          ),
+          labelText: AppLocalizations.of(context)!.email,
+          hintText: AppLocalizations.of(context)!.enterEmail,
+          prefixIcon: Icons.email_outlined,
         ),
 
         const SizedBox(height: 16),
 
-        TextField(
+        AppTextField(
           controller: _passwordController,
-
           obscureText: !_showPassword,
-          textInputAction: TextInputAction.done,
-          decoration: InputDecoration(
-            labelText: AppLocalizations.of(context)!.password,
-            hintText: AppLocalizations.of(context)!.enterPassword,
-            prefixIcon: const Icon(Icons.lock_outlined),
-            suffixIcon: IconButton(
-              onPressed: () {
-                setState(() {
-                  _showPassword = !_showPassword;
-                });
-              },
-              icon: Icon(
-                _showPassword
-                    ? Icons.visibility_off_rounded
-                    : Icons.visibility_rounded,
-                color: AppColors.textMedium,
-              ),
+          labelText: AppLocalizations.of(context)!.password,
+          hintText: AppLocalizations.of(context)!.enterPassword,
+          prefixIcon: Icons.lock_outlined,
+          suffixIcon: IconButton(
+            onPressed: () {
+              setState(() {
+                _showPassword = !_showPassword;
+              });
+            },
+            icon: Icon(
+              _showPassword
+                  ? Icons.visibility_off_rounded
+                  : Icons.visibility_rounded,
+              color: AppColors.textMedium,
             ),
           ),
         ),
@@ -264,18 +323,12 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
   }
 
   Widget _buildSubmitButton() {
-    return SizedBox(
-      width: double.infinity,
-      height: 52,
-      child: ElevatedButton(
-        onPressed: _handleSubmit,
-        child: Text(
-          _isLogin
-              ? AppLocalizations.of(context)!.login
-              : AppLocalizations.of(context)!.createAccount,
-          style: const TextStyle(fontSize: 17),
-        ),
-      ),
+    return AppButton(
+      onPressed: _isLoading ? null : _handleSubmit, // إيقاف الزرار أثناء التحميل
+      isLoading: _isLoading, // تفعيل الـ CircularProgressIndicator المدمج في الزرار بتاعك
+      text: _isLogin
+          ? AppLocalizations.of(context)!.login
+          : AppLocalizations.of(context)!.createAccount,
     );
   }
 

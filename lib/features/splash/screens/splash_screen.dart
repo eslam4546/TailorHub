@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../onboarding/screens/onboarding_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../customer/screens/customer_main_layout.dart';
+import '../../tailor/screens/tailor_dashboard_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -14,14 +18,51 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    _navigateToOnboarding();
+    _navigateToNextScreen();
   }
 
-  Future<void> _navigateToOnboarding() async {
+  Future<void> _navigateToNextScreen() async {
+    // 1. استنى الـ 3 ثواني بتوع الشاشة الافتتاحية
     await Future.delayed(const Duration(seconds: 3));
 
     if (!mounted) return;
 
+    // 2. التحقق من حالة تسجيل الدخول الحالية
+    User? currentUser = FirebaseAuth.instance.currentUser;
+
+    if (currentUser != null) {
+      // المستخدم مسجل دخول بالفعل، لازم نعرف دوره إيه
+      try {
+        DocumentSnapshot userDoc = await FirebaseFirestore.instance
+            .collection('Users')
+            .doc(currentUser.uid)
+            .get();
+
+        if (userDoc.exists) {
+          String? role = userDoc.get('role');
+
+          if (!mounted) return;
+          // توجيه بناءً على الدور
+          if (role == 'tailor') {
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (context) => const TailorDashboardScreen()),
+            );
+            return;
+          } else {
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (context) => const CustomerMainLayout()),
+            );
+            return;
+          }
+        }
+      } catch (e) {
+        // لو حصل خطأ في جلب البيانات، نتجاهله ونكمل للشاشة العادية
+        debugPrint("Error fetching user role: $e");
+      }
+    }
+
+    if (!mounted) return;
+    // 3. لو مفيش مستخدم مسجل، نوديه لشاشة الـ Onboarding
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(builder: (context) => const OnboardingScreen()),
     );

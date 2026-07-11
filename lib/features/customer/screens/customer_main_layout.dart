@@ -5,7 +5,7 @@ import 'customer_home_screen.dart';
 import 'order_tracking_screen.dart';
 import 'customer_notifications_screen.dart';
 import 'customer_profile_screen.dart';
-
+//عقل التطبيق في اني اتنقل بينهم
 class CustomerMainLayout extends StatefulWidget {
   const CustomerMainLayout({super.key});
 
@@ -28,6 +28,8 @@ class _CustomerMainLayoutState extends State<CustomerMainLayout> {
     final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
+      // علشان لو استعملت if و else بدمر الشاه القبله ويفتح شاشاه جديده
+
       body: IndexedStack(index: _currentIndex, children: _screens),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(

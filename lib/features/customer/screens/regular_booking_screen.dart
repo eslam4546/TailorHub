@@ -1,6 +1,8 @@
+import '../../../core/widgets/app_text_field.dart';
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
 import 'package:tailor_shop/l10n/app_localizations.dart';
+import '../widgets/status_tag.dart';
 
 class RegularBookingScreen extends StatefulWidget {
   const RegularBookingScreen({super.key});
@@ -232,27 +234,11 @@ class _RegularBookingScreenState extends State<RegularBookingScreen> {
             ),
           ),
 
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-            decoration: BoxDecoration(
-              color: AppColors.statusAvailable.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.circle, size: 7, color: AppColors.statusAvailable),
-                SizedBox(width: 5),
-                Text(
-                  'متاح',
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.statusAvailable,
-                  ),
-                ),
-              ],
-            ),
+          const StatusTag(
+            status: 'متاح',
+            color: AppColors.statusAvailable,
+            showDot: true,
+            hasBackground: true,
           ),
         ],
       ),
@@ -427,27 +413,10 @@ class _RegularBookingScreenState extends State<RegularBookingScreen> {
     return _SectionCard(
       title: AppLocalizations.of(context)!.specialNotes,
       titleIcon: Icons.edit_note_rounded,
-      child: TextField(
+      child: AppTextField(
         controller: _notesController,
         maxLines: 3,
-        decoration: InputDecoration(
-          hintText: AppLocalizations.of(context)!.specialNotesHint,
-          hintStyle: const TextStyle(fontSize: 13, color: AppColors.textLight),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: AppColors.dividerGrey),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(
-              color: AppColors.primaryNavy,
-              width: 2,
-            ),
-          ),
-          filled: true,
-          fillColor: AppColors.backgroundWhite,
-          contentPadding: const EdgeInsets.all(14),
-        ),
+        hintText: AppLocalizations.of(context)!.specialNotesHint,
       ),
     );
   }

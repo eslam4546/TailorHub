@@ -1,9 +1,10 @@
+import '../../../core/widgets/app_button.dart';
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../auth/screens/login_signup_screen.dart';
+import '../../auth/ui/login_signup_screen.dart';
 import 'package:tailor_shop/l10n/app_localizations.dart';
 import '../../../main.dart';
-
+import 'package:firebase_auth/firebase_auth.dart';
 class CustomerProfileScreen extends StatelessWidget {
   const CustomerProfileScreen({super.key});
 
@@ -195,32 +196,32 @@ class CustomerProfileScreen extends StatelessWidget {
             AppLocalizations.of(context)!.logOutConfirmationContent,
           ),
           actions: [
-            TextButton(
+            AppButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: Text(
-                AppLocalizations.of(context)!.cancel,
-                style: const TextStyle(color: AppColors.textMedium),
-              ),
+              text: AppLocalizations.of(context)!.cancel,
+              type: AppButtonType.text,
+              isFullWidth: false,
             ),
-            ElevatedButton(
-              onPressed: () {
+            AppButton(
+              onPressed: () async {
+                // 1. قفل الـ Dialog
                 Navigator.of(context).pop();
 
+                // 2. تسجيل الخروج الفعلي من فايربيز
+                await FirebaseAuth.instance.signOut();
+
+                if (!context.mounted) return;
+
+                // 3. التوجيه لشاشة تسجيل الدخول
                 Navigator.of(context).pushAndRemoveUntil(
                   MaterialPageRoute(
                     builder: (context) => const LoginSignupScreen(),
                   ),
-                  (Route<dynamic> route) => false,
+                      (Route<dynamic> route) => false,
                 );
               },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.statusClosed,
-                foregroundColor: AppColors.textWhite,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              child: Text(AppLocalizations.of(context)!.logOut),
+              text: AppLocalizations.of(context)!.logOut,
+              isFullWidth: false,
             ),
           ],
         );

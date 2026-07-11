@@ -5,6 +5,7 @@ import '../../../l10n/app_localizations.dart';
 import 'tailor_profile_settings.dart';
 import 'queue_management_screen.dart';
 import 'orders_management_screen.dart';
+import '../widgets/status_toggle_button.dart';
 
 class TailorDashboardScreen extends StatefulWidget {
   const TailorDashboardScreen({super.key});
@@ -134,109 +135,48 @@ class _TailorDashboardScreenState extends State<TailorDashboardScreen> {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       children: [
-        _buildStatusCard(
-          l10n: l10n,
-          statusKey: 'statusAvailable',
+        StatusToggleButton(
           label: l10n.statusAvailable,
           icon: Icons.check_circle_outline_rounded,
           activeColor: AppColors.statusAvailable,
+          isActive: _activeStatusKey == 'statusAvailable',
+          onTap: () => _updateStatus('statusAvailable', l10n.statusAvailable, l10n),
         ),
-        _buildStatusCard(
-          l10n: l10n,
-          statusKey: 'statusBusy',
+        StatusToggleButton(
           label: l10n.statusBusy,
           icon: Icons.access_time_rounded,
           activeColor: AppColors.statusBusy,
+          isActive: _activeStatusKey == 'statusBusy',
+          onTap: () => _updateStatus('statusBusy', l10n.statusBusy, l10n),
         ),
-        _buildStatusCard(
-          l10n: l10n,
-          statusKey: 'statusPrayer',
+        StatusToggleButton(
           label: l10n.statusPrayer,
           icon: Icons.mosque_outlined,
           activeColor: AppColors.primaryNavy,
+          isActive: _activeStatusKey == 'statusPrayer',
+          onTap: () => _updateStatus('statusPrayer', l10n.statusPrayer, l10n),
         ),
-        _buildStatusCard(
-          l10n: l10n,
-          statusKey: 'statusClosed',
+        StatusToggleButton(
           label: l10n.statusStop,
           icon: Icons.stop_circle_outlined,
           activeColor: AppColors.statusClosed,
+          isActive: _activeStatusKey == 'statusClosed',
+          onTap: () => _updateStatus('statusClosed', l10n.statusStop, l10n),
         ),
       ],
     );
   }
 
-  Widget _buildStatusCard({
-    required AppLocalizations l10n,
-    required String statusKey,
-    required String label,
-    required IconData icon,
-    required Color activeColor,
-  }) {
-    final bool isActive = _activeStatusKey == statusKey;
-
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _activeStatusKey = statusKey;
-        });
-
-        ScaffoldMessenger.of(context).clearSnackBars();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(l10n.statusUpdateFeedback(label)),
-            behavior: SnackBarBehavior.floating,
-            duration: const Duration(seconds: 2),
-          ),
-        );
-      },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: isActive
-              ? activeColor.withValues(alpha: 0.1)
-              : AppColors.backgroundWhite,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: isActive ? activeColor : AppColors.dividerGrey,
-            width: isActive ? 2 : 1,
-          ),
-          boxShadow: [
-            if (isActive)
-              BoxShadow(
-                color: activeColor.withValues(alpha: 0.2),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              )
-            else
-              BoxShadow(
-                color: AppColors.primaryNavy.withValues(alpha: 0.04),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-          ],
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              icon,
-              size: 36,
-              color: isActive ? activeColor : AppColors.textMedium,
-            ),
-            const SizedBox(height: 12),
-            Text(
-              label,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
-                color: isActive ? activeColor : AppColors.textDark,
-              ),
-            ),
-          ],
-        ),
+  void _updateStatus(String statusKey, String label, AppLocalizations l10n) {
+    setState(() {
+      _activeStatusKey = statusKey;
+    });
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(l10n.statusUpdateFeedback(label)),
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 2),
       ),
     );
   }

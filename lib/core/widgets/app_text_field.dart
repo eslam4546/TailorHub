@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import '../theme/app_colors.dart';
 
 class AppTextField extends StatelessWidget {
-  final String labelText;
+  final String? labelText;
   final String? hintText;
   final TextEditingController? controller;
   final IconData? prefixIcon;
@@ -16,7 +16,7 @@ class AppTextField extends StatelessWidget {
 
   const AppTextField({
     super.key,
-    required this.labelText,
+    this.labelText,
     this.hintText,
     this.controller,
     this.prefixIcon,

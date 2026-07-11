@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/app_text_field.dart';
 import '../../../l10n/app_localizations.dart';
-import 'tailor_profile_screen.dart';
-
+import '../widgets/category_chip.dart';
+import '../widgets/tailor_card.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 class CustomerHomeScreen extends StatefulWidget {
   const CustomerHomeScreen({super.key});
 
@@ -14,56 +17,6 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
   int _selectedCategory = 0;
   final TextEditingController _searchController = TextEditingController();
 
-  final List<Map<String, dynamic>> _tailors = const [
-    {
-      'name': 'Ahmed El-Fashionista',
-      'rating': 4.8,
-      'distance': '1.2 km',
-      'specialty': "Men's Wear",
-      'status': 'Available',
-      'services': 'Suits, Shirts, Alterations',
-    },
-    {
-      'name': 'Fatma\'s Couture',
-      'rating': 4.9,
-      'distance': '2.5 km',
-      'specialty': "Women's Wear",
-      'status': 'Busy',
-      'services': 'Dresses, Abayas, Formal Gowns',
-    },
-    {
-      'name': 'Hassan Tailor Shop',
-      'rating': 4.5,
-      'distance': '0.8 km',
-      'specialty': 'Unisex',
-      'status': 'Available',
-      'services': 'Repairs, Alterations, Tailoring',
-    },
-    {
-      'name': 'Nour Premium Tailoring',
-      'rating': 5.0,
-      'distance': '3.1 km',
-      'specialty': "Men's Wear",
-      'status': 'Closed',
-      'services': 'VIP Home Service, Suits, Galabiyas',
-    },
-    {
-      'name': 'Sara\'s Stitch Studio',
-      'rating': 4.7,
-      'distance': '1.8 km',
-      'specialty': "Women's Wear",
-      'status': 'Available',
-      'services': 'Bridal, Evening Wear, Repairs',
-    },
-    {
-      'name': 'Mohamed Classic Wear',
-      'rating': 4.3,
-      'distance': '4.0 km',
-      'specialty': "Men's Wear",
-      'status': 'Busy',
-      'services': 'Pants, Shirts, Galabiyas',
-    },
-  ];
 
   @override
   void dispose() {
@@ -168,42 +121,10 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
             ],
           ),
           const SizedBox(height: 20),
-          TextField(
+          AppTextField(
             controller: _searchController,
-            style: const TextStyle(
-              color: AppColors.primaryNavy,
-              fontWeight: FontWeight.w500,
-            ),
-            cursorColor: AppColors.primaryNavy,
-            decoration: InputDecoration(
-              hintText: l10n.searchHint,
-              hintStyle: const TextStyle(
-                color: AppColors.textMedium,
-                fontSize: 14,
-              ),
-              prefixIcon: const Icon(
-                Icons.search_rounded,
-                color: AppColors.textMedium,
-              ),
-              filled: true,
-              fillColor: AppColors.backgroundWhite,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
-                borderSide: BorderSide.none,
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
-                borderSide: BorderSide.none,
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
-                borderSide: const BorderSide(
-                  color: AppColors.accentGold,
-                  width: 2,
-                ),
-              ),
-              contentPadding: const EdgeInsets.symmetric(vertical: 14),
-            ),
+            hintText: l10n.searchHint,
+            prefixIcon: Icons.search_rounded,
           ),
         ],
       ),
@@ -222,28 +143,14 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
           final isSelected = _selectedCategory == index;
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4),
-            child: ChoiceChip(
-              label: Text(categories[index]),
-              selected: isSelected,
+            child: CategoryChip(
+              label: categories[index],
+              isSelected: isSelected,
               onSelected: (selected) {
                 setState(() {
                   _selectedCategory = index;
                 });
               },
-              selectedColor: AppColors.primaryNavy,
-              backgroundColor: AppColors.surfaceGrey,
-              labelStyle: TextStyle(
-                color: isSelected ? AppColors.textWhite : AppColors.textDark,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-                side: BorderSide(
-                  color: isSelected
-                      ? AppColors.primaryNavy
-                      : AppColors.dividerGrey,
-                ),
-              ),
             ),
           );
         },
@@ -252,181 +159,73 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
   }
 
   Widget _buildTailorList(AppLocalizations l10n) {
-    return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
-      itemCount: _tailors.length,
-      itemBuilder: (context, index) {
-        final tailor = _tailors[index];
-        final bool isAvailable = tailor['status'] == 'Available';
-        final translatedStatus = _getTranslatedStatus(tailor['status'], l10n);
-        final translatedSpecialty = _getTranslatedSpecialty(
-          tailor['specialty'],
-          l10n,
-        );
+    return StreamBuilder<QuerySnapshot>(
+      // عمل Query في الفايربيز لجلب الترزية فقط
+      stream: FirebaseFirestore.instance
+          .collection('Users')
+          .where('role', isEqualTo: 'tailor')
+          .snapshots(),
+      builder: (context, snapshot) {
+        // 1. حالة التحميل (Loading)
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(
+            child: Padding(
+              padding: EdgeInsets.only(top: 40),
+              child: CircularProgressIndicator(),
+            ),
+          );
+        }
 
-        return GestureDetector(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const TailorProfileScreen(),
+
+        if (snapshot.hasError) {
+          return Center(child: Text('حدث خطأ أثناء تحميل البيانات'));
+        }
+
+        
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          return const Center(
+            child: Padding(
+              padding: EdgeInsets.only(top: 40),
+              child: Text(
+                'لا يوجد خياطين متاحين حالياً',
+                style: TextStyle(color: Colors.grey),
               ),
+            ),
+          );
+        }
+
+        final tailorDocs = snapshot.data!.docs;
+
+        return ListView.builder(
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+          itemCount: tailorDocs.length,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemBuilder: (context, index) {
+
+            final data = tailorDocs[index].data() as Map<String, dynamic>;
+
+
+            final tailorMap = {
+              'name': data['fullName'] ?? 'خياط غير مسمى',
+              'rating': 5.0, // وهمي مؤقتاً
+              'distance': '1.0 km', // وهمي مؤقتاً
+              'specialty': 'Unisex', // وهمي مؤقتاً
+              'status': 'Available', // وهمي مؤقتاً
+              'services': data['email'] ?? '', // هنعرض الإيميل مكان الخدمات مؤقتاً للتأكد
+            };
+
+            final bool isAvailable = tailorMap['status'] == 'Available';
+            final translatedStatus = _getTranslatedStatus(tailorMap['status'] as String, l10n);
+            final translatedSpecialty = _getTranslatedSpecialty(tailorMap['specialty'] as String, l10n);
+
+            return TailorCard(
+              tailor: tailorMap,
+              translatedStatus: translatedStatus,
+              translatedSpecialty: translatedSpecialty,
+              isAvailable: isAvailable,
             );
           },
-          child: Container(
-            margin: const EdgeInsets.only(bottom: 16),
-            decoration: BoxDecoration(
-              color: AppColors.backgroundWhite,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.primaryNavy.withValues(alpha: 0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  height: 120,
-                  decoration: BoxDecoration(
-                    color: AppColors.textLight.withValues(alpha: 0.2),
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(16),
-                    ),
-                  ),
-                  child: Center(
-                    child: Icon(
-                      Icons.storefront_rounded,
-                      size: 40,
-                      color: AppColors.primaryNavy.withValues(alpha: 0.3),
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: Text(
-                              tailor['name'],
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.primaryNavy,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          Row(
-                            children: [
-                              const Icon(
-                                Icons.star_rounded,
-                                color: AppColors.accentGold,
-                                size: 18,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                tailor['rating'].toString(),
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.location_on_outlined,
-                            size: 16,
-                            color: AppColors.textMedium,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            tailor['distance'],
-                            style: const TextStyle(
-                              color: AppColors.textMedium,
-                              fontSize: 13,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: AppColors.surfaceGrey,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              translatedSpecialty,
-                              style: const TextStyle(
-                                fontSize: 12,
-                                color: AppColors.primaryNavy,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: Text(
-                              tailor['services'],
-                              style: const TextStyle(
-                                color: AppColors.textMedium,
-                                fontSize: 13,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          Row(
-                            children: [
-                              Container(
-                                width: 8,
-                                height: 8,
-                                decoration: BoxDecoration(
-                                  color: isAvailable
-                                      ? AppColors.statusAvailable
-                                      : AppColors.statusClosed,
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
-                              const SizedBox(width: 6),
-                              Text(
-                                translatedStatus,
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                  color: isAvailable
-                                      ? AppColors.statusAvailable
-                                      : AppColors.statusClosed,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
         );
       },
     );

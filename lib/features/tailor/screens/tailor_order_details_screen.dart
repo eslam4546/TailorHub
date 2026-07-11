@@ -1,3 +1,4 @@
+import '../../../core/widgets/app_button.dart';
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
 
@@ -476,22 +477,9 @@ class _TailorOrderDetailsScreenState extends State<TailorOrderDetailsScreen> {
 
           Expanded(
             flex: 2,
-            child: SizedBox(
-              height: 52,
-              child: ElevatedButton(
-                onPressed: _handleAccept,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryNavy,
-                  foregroundColor: AppColors.textWhite,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: const Text(
-                  'Accept Order',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-              ),
+            child: AppButton(
+              onPressed: _handleAccept,
+              text: 'Accept Order',
             ),
           ),
         ],
