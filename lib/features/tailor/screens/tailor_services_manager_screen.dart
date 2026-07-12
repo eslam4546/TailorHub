@@ -2,6 +2,8 @@ import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_text_field.dart';
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class TailorServicesManagerScreen extends StatefulWidget {
   const TailorServicesManagerScreen({super.key});
@@ -20,7 +22,7 @@ class _TailorServicesManagerScreenState
     {'id': 'SRV-4', 'name': 'Jacket Repair', 'price': 200},
   ];
 
-  void _showServiceModal({Map<String, dynamic>? existingService}) {
+  void _showServiceModal({DocumentSnapshot? existingService}) {
     final bool isEditing = existingService != null;
 
     final TextEditingController nameController = TextEditingController(
@@ -41,16 +43,14 @@ class _TailorServicesManagerScreenState
         return Padding(
           padding: EdgeInsets.only(
             bottom: MediaQuery.of(context).viewInsets.bottom,
-            left: 24,
-            right: 24,
-            top: 24,
+            left: 24, right: 24, top: 24,
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                isEditing ? 'Edit Service' : 'Add New Service',
+                isEditing ? 'تعديل الخدمة' : 'إضافة خدمة جديدة',
                 style: const TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -58,44 +58,47 @@ class _TailorServicesManagerScreenState
                 ),
               ),
               const SizedBox(height: 16),
-
               AppTextField(
                 controller: nameController,
-                labelText: 'Service Name (e.g. Alteration)',
+                labelText: 'اسم الخدمة (مثال: تقصير بنطلون)',
               ),
               const SizedBox(height: 16),
-
               AppTextField(
                 controller: priceController,
                 keyboardType: TextInputType.number,
-                labelText: 'Base Price (EGP)',
+                labelText: 'السعر (جنيه)',
               ),
               const SizedBox(height: 24),
-
               AppButton(
-                onPressed: () {
+                onPressed: () async {
                   final name = nameController.text.trim();
-                  final price =
-                      int.tryParse(priceController.text.trim()) ?? 0;
+                  final price = int.tryParse(priceController.text.trim()) ?? 0;
 
                   if (name.isNotEmpty && price > 0) {
-                    setState(() {
-                      if (isEditing) {
-                        existingService['name'] = name;
-                        existingService['price'] = price;
-                      } else {
-                        _services.add({
-                          'id':
-                              'SRV-${DateTime.now().millisecondsSinceEpoch}',
-                          'name': name,
-                          'price': price,
-                        });
-                      }
-                    });
-                    Navigator.pop(context);
+                    final String uid = FirebaseAuth.instance.currentUser!.uid;
+                    final servicesRef = FirebaseFirestore.instance
+                        .collection('Users')
+                        .doc(uid)
+                        .collection('services'); // دي الكولكشن الفرعية
+
+                    if (isEditing) {
+                      // لو بنعدل خدمة موجودة
+                      await servicesRef.doc(existingService.id).update({
+                        'name': name,
+                        'price': price,
+                      });
+                    } else {
+                      // لو بنضيف خدمة جديدة
+                      await servicesRef.add({
+                        'name': name,
+                        'price': price,
+                        'createdAt': FieldValue.serverTimestamp(),
+                      });
+                    }
+                    if (context.mounted) Navigator.pop(context);
                   }
                 },
-                text: isEditing ? 'Save Changes' : 'Add Service',
+                text: isEditing ? 'حفظ التعديلات' : 'إضافة الخدمة',
               ),
               const SizedBox(height: 24),
             ],
@@ -105,14 +108,21 @@ class _TailorServicesManagerScreenState
     );
   }
 
-  void _deleteService(Map<String, dynamic> service) {
-    setState(() {
-      _services.removeWhere((s) => s['id'] == service['id']);
-    });
+  Future<void> _deleteService(String docId, String serviceName) async {
+    final String uid = FirebaseAuth.instance.currentUser!.uid;
 
+    // مسح الخدمة من الداتابيز
+    await FirebaseFirestore.instance
+        .collection('Users')
+        .doc(uid)
+        .collection('services')
+        .doc(docId)
+        .delete();
+
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('${service['name']} removed.'),
+        content: Text('تم حذف $serviceName.'),
         backgroundColor: AppColors.statusClosed,
         behavior: SnackBarBehavior.floating,
       ),
@@ -130,17 +140,35 @@ class _TailorServicesManagerScreenState
         centerTitle: true,
         elevation: 0,
       ),
-      body: _services.isEmpty
-          ? _buildEmptyState()
-          : ListView.builder(
-              padding: const EdgeInsets.all(16.0),
-              itemCount: _services.length,
-              itemBuilder: (context, index) {
-                final service = _services[index];
-                return _buildServiceCard(service);
-              },
-            ),
+// استبدل الـ body الحالي بالبلوك ده
+      body: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance
+            .collection('Users')
+            .doc(FirebaseAuth.instance.currentUser!.uid)
+            .collection('services')
+            .orderBy('createdAt', descending: true)
+            .snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
+          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+            return _buildEmptyState();
+          }
+
+          final services = snapshot.data!.docs;
+
+          return ListView.builder(
+            padding: const EdgeInsets.all(16.0),
+            itemCount: services.length,
+            itemBuilder: (context, index) {
+              final serviceDoc = services[index];
+              return _buildServiceCard(serviceDoc);
+            },
+          );
+        },
+      ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showServiceModal(),
         backgroundColor: AppColors.accentGold,
@@ -184,8 +212,7 @@ class _TailorServicesManagerScreenState
       ),
     );
   }
-
-  Widget _buildServiceCard(Map<String, dynamic> service) {
+  Widget _buildServiceCard(DocumentSnapshot serviceDoc) { // 1. تعديل نوع الباراميتر هنا
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -214,7 +241,7 @@ class _TailorServicesManagerScreenState
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    service['name'],
+                    serviceDoc['name'], // 2. قراءة الاسم من الدوكيومنت
                     style: const TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
@@ -223,7 +250,7 @@ class _TailorServicesManagerScreenState
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '${service['price']} EGP',
+                    '${serviceDoc['price']} EGP', // 3. قراءة السعر من الدوكيومنت
                     style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
@@ -242,7 +269,8 @@ class _TailorServicesManagerScreenState
                     Icons.edit_rounded,
                     color: AppColors.primaryNavy,
                   ),
-                  onPressed: () => _showServiceModal(existingService: service),
+                  // 4. إرسال الدوكيومنت لدالة التعديل
+                  onPressed: () => _showServiceModal(existingService: serviceDoc),
                   tooltip: 'Edit Price',
                 ),
                 IconButton(
@@ -250,7 +278,8 @@ class _TailorServicesManagerScreenState
                     Icons.delete_outline_rounded,
                     color: AppColors.statusClosed,
                   ),
-                  onPressed: () => _deleteService(service),
+                  // 5. إرسال الـ ID والاسم لدالة الحذف عشان الإيرور يختفي
+                  onPressed: () => _deleteService(serviceDoc.id, serviceDoc['name']),
                   tooltip: 'Delete Service',
                 ),
               ],

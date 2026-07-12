@@ -1,77 +1,48 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
 import 'package:tailor_shop/l10n/app_localizations.dart';
 import 'regular_booking_screen.dart';
 import 'vip_booking_screen.dart';
-
 class TailorProfileScreen extends StatelessWidget {
-  const TailorProfileScreen({super.key});
+final Map<String, dynamic> tailorData;
+final String tailorUid;
 
-  static const String _tailorName = 'Ahmed El-Fashionista';
-  static const String _specialty = "Men's Wear Specialist";
-  static const String _distance = '1.2 km away';
-  static const String _status = 'Available';
-  static const double _rating = 4.8;
-  static const int _totalReviews = 124;
-  static const String _bio =
-      'Master tailor with 15+ years of experience in premium '
-      'men\'s fashion. Specializing in bespoke suits, formal '
-      'shirts, and traditional galabiyas. Known for precise '
-      'measurements and fast turnaround.';
+const TailorProfileScreen({
+super.key,
+required this.tailorData,
+required this.tailorUid,
+});
 
-  static const List<Map<String, dynamic>> _services = [
-    {
-      'name': 'تصليح بنطلون\nPants Alteration',
-      'price': 50,
-      'icon': Icons.straighten_rounded,
-    },
-    {
-      'name': 'تصليح قميص\nShirt Repair',
-      'price': 80,
-      'icon': Icons.checkroom_rounded,
-    },
-    {
-      'name': 'تفصيل قميص\nCustom Shirt',
-      'price': 300,
-      'icon': Icons.dry_cleaning_rounded,
-    },
-    {
-      'name': 'تفصيل بنطلون\nCustom Pants',
-      'price': 400,
-      'icon': Icons.content_cut_rounded,
-    },
-    {
-      'name': 'تفصيل بدلة\nFormal Suit',
-      'price': 1500,
-      'icon': Icons.man_rounded,
-    },
-    {
-      'name': 'تفصيل جلابية\nTraditional Galabiya',
-      'price': 350,
-      'icon': Icons.accessibility_new_rounded,
-    },
-  ];
+static const int _totalReviews = 124;
+static const String _bio =
+'Master tailor with 15+ years of experience in premium '
+'men\'s fashion. Specializing in bespoke suits, formal '
+'shirts, and traditional galabiyas. Known for precise '
+'measurements and fast turnaround.';
 
-  static const List<Map<String, dynamic>> _reviews = [
-    {
-      'name': 'Mohamed Ali',
-      'rating': 5,
-      'comment': 'Excellent work on my wedding suit! Perfect fit.',
-      'date': '2 days ago',
-    },
-    {
-      'name': 'Kareem Hassan',
-      'rating': 4,
-      'comment': 'Great alterations, very reasonable prices.',
-      'date': '1 week ago',
-    },
-    {
-      'name': 'Omar Youssef',
-      'rating': 5,
-      'comment': 'Fast and professional. Highly recommended!',
-      'date': '2 weeks ago',
-    },
-  ];
+static const List<Map<String, dynamic>> _reviews = [
+{
+'name': 'Mohamed Ali',
+'rating': 5,
+'comment': 'Excellent work on my wedding suit! Perfect fit.',
+'date': '2 days ago',
+},
+{
+'name': 'Kareem Hassan',
+'rating': 4,
+'comment': 'Great alterations, very reasonable prices.',
+'date': '1 week ago',
+},
+{
+'name': 'Omar Youssef',
+'rating': 5,
+'comment': 'Fast and professional. Highly recommended!',
+'date': '2 weeks ago',
+},
+];
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -135,8 +106,8 @@ class TailorProfileScreen extends StatelessWidget {
             ),
             child: Center(
               child: Text(
-                'A',
-                style: TextStyle(
+                tailorData['name'] != null ? tailorData['name'][0].toUpperCase() : 'T',
+                style: const TextStyle(
                   fontSize: 40,
                   fontWeight: FontWeight.bold,
                   color: AppColors.accentGold,
@@ -144,47 +115,39 @@ class TailorProfileScreen extends StatelessWidget {
               ),
             ),
           ),
-
-          SizedBox(height: 16),
-
-          const Text(
-            _tailorName,
-            style: TextStyle(
+          const SizedBox(height: 16),
+          Text(
+            tailorData['name'] ?? 'خياط غير مسمى',
+            style: const TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
               color: AppColors.textWhite,
             ),
           ),
-
-          SizedBox(height: 4),
-
+          const SizedBox(height: 4),
           Text(
-            _specialty,
+            tailorData['specialty'] ?? 'Unisex',
             style: TextStyle(
               fontSize: 14,
               color: AppColors.textWhite.withValues(alpha: 0.7),
             ),
           ),
-
-          SizedBox(height: 16),
-
+          const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               _buildInfoChip(
                 icon: Icons.star_rounded,
-                label: '$_rating ($_totalReviews)',
+                label: '${tailorData['rating'] ?? 5.0} ($_totalReviews)',
                 iconColor: AppColors.accentGold,
               ),
-              SizedBox(width: 12),
-
+              const SizedBox(width: 12),
               _buildInfoChip(
                 icon: Icons.location_on_rounded,
-                label: _distance,
+                label: tailorData['distance'] ?? '1.0 km',
                 iconColor: AppColors.textWhite,
               ),
-              SizedBox(width: 12),
-
+              const SizedBox(width: 12),
               _buildStatusChip(),
             ],
           ),
@@ -193,13 +156,14 @@ class TailorProfileScreen extends StatelessWidget {
     );
   }
 
+
   Widget _buildInfoChip({
     required IconData icon,
     required String label,
     required Color iconColor,
   }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding:  EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
         color: AppColors.textWhite.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(20),
@@ -226,7 +190,9 @@ class TailorProfileScreen extends StatelessWidget {
     final Color statusColor;
     final String statusLabel;
 
-    switch (_status) {
+    final currentStatus = tailorData['status'] ?? 'Available';
+
+    switch (currentStatus) {
       case 'Available':
         statusColor = AppColors.statusAvailable;
         statusLabel = 'متاح';
@@ -257,7 +223,7 @@ class TailorProfileScreen extends StatelessWidget {
               shape: BoxShape.circle,
             ),
           ),
-          SizedBox(width: 5),
+          const SizedBox(width: 5),
           Text(
             statusLabel,
             style: TextStyle(
@@ -270,7 +236,6 @@ class TailorProfileScreen extends StatelessWidget {
       ),
     );
   }
-
   Widget _buildAboutSection(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -333,15 +298,15 @@ class TailorProfileScreen extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(
+                const Icon(
                   Icons.receipt_long_rounded,
                   size: 20,
                   color: AppColors.primaryNavy,
                 ),
-                SizedBox(width: 8),
+                const SizedBox(width: 8),
                 Text(
                   AppLocalizations.of(context)!.servicesAndPricing,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                     color: AppColors.textDark,
@@ -349,76 +314,97 @@ class TailorProfileScreen extends StatelessWidget {
                 ),
               ],
             ),
-            SizedBox(height: 4),
+            const SizedBox(height: 4),
             Text(
               AppLocalizations.of(context)!.allPricesInEgp,
-              style: TextStyle(fontSize: 12, color: AppColors.textLight),
+              style: const TextStyle(fontSize: 12, color: AppColors.textLight),
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
 
-            ...List.generate(_services.length, (index) {
-              final service = _services[index];
-              return Column(
-                children: [
-                  if (index > 0)
-                    Divider(color: AppColors.dividerGrey, height: 1),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    child: Row(
+            StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection('Users')
+                  .doc(tailorUid)
+                  .collection('services')
+                  .orderBy('createdAt', descending: true)
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: CircularProgressIndicator(),
+                  ));
+                }
+
+                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                  return const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 20),
+                    child: Text('لا توجد خدمات متاحة حالياً', style: TextStyle(color: AppColors.textMedium)),
+                  );
+                }
+
+                final services = snapshot.data!.docs;
+
+                return Column(
+                  children: List.generate(services.length, (index) {
+                    final service = services[index];
+                    return Column(
                       children: [
-                        Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            color: AppColors.primaryNavy.withValues(
-                              alpha: 0.08,
-                            ),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Icon(
-                            service['icon'] as IconData,
-                            size: 20,
-                            color: AppColors.primaryNavy,
-                          ),
-                        ),
-                        SizedBox(width: 12),
-
-                        Expanded(
-                          child: Text(
-                            service['name'] as String,
-                            style: const TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w500,
-                              color: AppColors.textDark,
-                              height: 1.5,
-                            ),
-                          ),
-                        ),
-
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppColors.accentGold.withValues(alpha: 0.12),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            '${service['price']} EGP',
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.accentGold,
-                            ),
+                        if (index > 0)
+                          const Divider(color: AppColors.dividerGrey, height: 1),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 40,
+                                height: 40,
+                                decoration: BoxDecoration(
+                                  color: AppColors.primaryNavy.withValues(alpha: 0.08),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: const Icon(
+                                  Icons.cut_rounded,
+                                  size: 20,
+                                  color: AppColors.primaryNavy,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  service['name'],
+                                  style: const TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w500,
+                                    color: AppColors.textDark,
+                                    height: 1.5,
+                                  ),
+                                ),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: AppColors.accentGold.withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  '${service['price']} EGP',
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.accentGold,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
-                    ),
-                  ),
-                ],
-              );
-            }),
+                    );
+                  }),
+                );
+              },
+            ),
           ],
         ),
       ),

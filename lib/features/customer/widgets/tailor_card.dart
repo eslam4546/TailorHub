@@ -24,7 +24,10 @@ class TailorCard extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => const TailorProfileScreen(),
+            builder: (context) => TailorProfileScreen(
+              tailorData: tailor, // بنبعت كل بيانات الترزي
+              tailorUid: tailor['uid'], // بنبعت الـ ID بتاعه
+            ),
           ),
         );
       },

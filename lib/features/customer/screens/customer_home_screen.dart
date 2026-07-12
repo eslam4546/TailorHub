@@ -207,12 +207,13 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
 
 
             final tailorMap = {
+              'uid': tailorDocs[index].id,
               'name': data['fullName'] ?? 'خياط غير مسمى',
-              'rating': 5.0, // وهمي مؤقتاً
-              'distance': '1.0 km', // وهمي مؤقتاً
-              'specialty': 'Unisex', // وهمي مؤقتاً
-              'status': 'Available', // وهمي مؤقتاً
-              'services': data['email'] ?? '', // هنعرض الإيميل مكان الخدمات مؤقتاً للتأكد
+              'rating': 5.0,
+              'distance': '1.0 km',
+              'specialty': 'Unisex',
+              'status': 'Available',
+              'services': data['email'] ?? '',
             };
 
             final bool isAvailable = tailorMap['status'] == 'Available';
